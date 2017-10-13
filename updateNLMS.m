@@ -4,7 +4,7 @@ function [ newCoefficients ] = updateNLMS( oldCoefficients, inputSignal,...
 %least-mean-square filter
 
 
-DEN = inputSignal*inputSignal'
+DEN = inputSignal*inputSignal' + 0.01;
 
 newCoefficients = oldCoefficients + stepSize * inputSignal * error / DEN;
 

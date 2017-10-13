@@ -1,5 +1,7 @@
-function [ y ] = highPassFilter(x1,x2,x3)
+function [ outputData ] = highPassFilter(digitalFilter,inputData)
 %highPassFilter 
+
+outputData = filter(digitalFilter,inputData);
 
 
 
