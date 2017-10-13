@@ -15,13 +15,32 @@ close all
 clc 
 %% Load Measurement Data
 
-% Delta-Sigma-ADC (Electrode)
-load('data/steady/delsig_test1.mat');
-% SAR1 (Microphone 1)
-load('data/steady/sar1_test1.mat');
-% SAR2 (Microphone 2)
-load('data/steady/sar2_test1.mat');
+dataCase = 2;
 
+if dataCase == 1
+    % Delta-Sigma-ADC (Electrode)
+    load('data/steady/delsig.mat');
+    % SAR1 (Microphone 1)
+    load('data/steady/sar1.mat');
+    % SAR2 (Microphone 2)
+    load('data/steady/sar2.mat');
+    
+elseif dataCase == 2
+    % Delta-Sigma-ADC (Electrode)
+    load('data/left_hand_moving/delsig.mat');
+    % SAR1 (Microphone 1)
+    load('data/left_hand_moving/sar1.mat');
+    % SAR2 (Microphone 2)
+    load('data/left_hand_moving/sar2.mat');
+    
+elseif dataCase == 3
+    % Delta-Sigma-ADC (Electrode)
+    load('data/both_hands_moving/delsig.mat');
+    % SAR1 (Microphone 1)
+    load('data/both_hands_moving/sar1.mat');
+    % SAR2 (Microphone 2)
+    load('data/both_hands_moving/sar2.mat');
+end
 %% Parameter Definition
 
 % Sampling Frequency [Hz]
@@ -30,7 +49,7 @@ sampleRate = 183;
 % NLMS Filter Order
 filterOrderNLMS = 10;
 % NLMS Step Size
-stepSize = 0.01;
+stepSize = 0.001;
 
 % HP Filter Order
 filterOrderHP = 5;
@@ -41,6 +60,9 @@ beta = 0.3;
 gamma = 0.1;
 
 %% Signal Initialization
+powerError1 = 0;
+powerError2 = 0;
+alpha = 0.5;
 
 
 %% Construct Filters
@@ -88,18 +110,21 @@ for i = 1:length(delsig)
                                        error2(i),stepSize);
     end
 
-%     % Estimate Power of the Prediction Error
-%     powerError1(i) = predictionErrorEstimation(powerError1(i-1),...
-%                                                error1(i), beta);
-%     powerError2(i) = predictionErrorEstimation(powerError2(i-1),...
-%                                                error2(i), beta);
-%     
-%     % Update the Signal Combination Weight
-%     alpha(i) = weightAdaption(alpha(i-1),powerError1(i),...
-%                               powerError2(i),gamma);
-%     
-%     % Calculate the Output Signal
-%     output(i) = alpha(i) * error1(i) + (1-alpha(i)) * error2(i);
+    if i>1
+        % Estimate Power of the Prediction Error
+        powerError1(i) = predictionErrorEstimation(powerError1(i-1),...
+            error1(i), beta);
+        powerError2(i) = predictionErrorEstimation(powerError2(i-1),...
+            error2(i), beta);
+        
+        % Update the Signal Combination Weight
+        alpha(i) = weightAdaption(alpha(i-1),powerError1(i),...
+            powerError2(i),gamma);
+    end
+        
+    
+    % Calculate the Output Signal
+    output(i) = alpha(i) * error1(i) + (1-alpha(i)) * error2(i);
 end
 
 
