@@ -41,33 +41,41 @@ elseif dataCase == 3
     % SAR2 (Microphone 2)
     load('data/both_hands_moving/sar2.mat');
 end
-%% Parameter Definition
 
 % Sampling Frequency [Hz]
 sampleRate = 183;
 
+%% Parameter Definition
+
 % NLMS Filter Order
-filterOrderNLMS = 10;
+filterOrderNLMS = 20;
 % NLMS Step Size
 stepSize = 0.001;
 
 % HP Filter Order
 filterOrderHP = 5;
+% HP Passpand Frequency;
+passBandFrequencyHP = 2;
 
 % Power Estimation Weight Factor
-beta = 0.3;
+beta = 0.4;
 % Weight Adaption Sensitivity
-gamma = 0.1;
+gamma = 0.4;
 
 %% Signal Initialization
 powerError1 = 0;
 powerError2 = 0;
 alpha = 0.5;
 
+% Fix Last Values
+delsig = delsig(1:end-1);
+sar1 = sar1(1:end-1);
+sar2 = sar2(1:end-1);
+
 
 %% Construct Filters
 hpFilt = designfilt('highpassiir','FilterOrder',filterOrderHP, ...
-                    'PassbandFrequency',2,'PassbandRipple',0.1, ...
+                    'PassbandFrequency',passBandFrequencyHP,'PassbandRipple',0.1, ...
                     'SampleRate',sampleRate);
 
 nlmsCoefficients1 = zeros(1,filterOrderNLMS);                         
@@ -129,13 +137,48 @@ end
 
 
 %% Post Processing and Plotting
+plotMin = 500;
+plotMax = 800;
+
 inputSignalFigure = figure('NumberTitle','off','Name','Input Signals');
 subplot(3,1,1);
-plot(delsig);
+plot(plotMin:plotMax,delsig(plotMin:plotMax));
+title('Electrode Signal')
 subplot(3,1,2);
-plot(sar1);
+plot(plotMin:plotMax,sar1(plotMin:plotMax));
+title('Microphone 1')
 subplot(3,1,3);
-plot(sar2);
+plot(plotMin:plotMax,sar2(plotMin:plotMax));
+title('Microphone 2')
+
+filteredSignalFigure = figure('NumberTitle','off','Name','Filtered Signals');
+subplot(3,1,1);
+plot(plotMin:plotMax,xMic1(plotMin:plotMax),...
+     plotMin:plotMax,xMic2(plotMin:plotMax));
+title('High Pass Filtered Microphone Signals')
+legend('Mic 1','Mic 2')
+subplot(3,1,2);
+plot(plotMin:plotMax,uMic1(plotMin:plotMax),...
+     plotMin:plotMax,uMic2(plotMin:plotMax));
+title('NLMS Filtered Microphone Signals')
+legend('Mic 1','Mic 2')
+
+subplot(3,1,3);
+plot(plotMin:plotMax,error1(plotMin:plotMax),...
+     plotMin:plotMax,error2(plotMin:plotMax));
+title('Error Signals')
+legend('Error 1','Error 2')
+
+
+autoArrangeFigures(1,2)
+
+outputSignalFigure = figure('NumberTitle','off','Name','Output Signal');
+subplot(2,1,1);
+plot(plotMin:plotMax,alpha(plotMin:plotMax));
+title('Weight Factor (Alpha)')
+subplot(2,1,2);
+plot(plotMin:plotMax,output(plotMin:plotMax));
+title('Final Signal')
 
 
 
