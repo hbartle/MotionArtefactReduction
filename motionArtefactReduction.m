@@ -15,7 +15,7 @@ close all
 clc 
 %% Load Measurement Data
 
-dataCase = 2;
+dataCase = 3;
 
 if dataCase == 1
     % Delta-Sigma-ADC (Electrode)
@@ -55,7 +55,7 @@ stepSize = 0.005;
 % HP Filter Order
 filterOrderHP = 6;
 % HP Passpand Frequency;
-passBandFrequencyHP = 2;
+passBandFrequencyHP = 2.8;
 
 % Notch Filter Center Frequency
 notchFrequency = 50/(sampleRate/2);
@@ -64,9 +64,9 @@ notchBandwidth = notchFrequency/30;
 
 
 % Power Estimation Weight Factor
-beta = 0.8;
+beta = 0.7;
 % Weight Adaption Sensitivity
-gamma = 0.5;
+gamma = 0.8;
 
 %% Signal Initialization
 powerError1 = 0;
@@ -155,56 +155,86 @@ end
 
 %% Post Processing and Plotting
 close all
-plotMin = 800;
-plotMax = 1200;
+plotMin = 1400;
+plotMax = 1900;
+sampleTime = 1/sampleRate;
+plotRange = plotMin*sampleTime:sampleTime:plotMax*sampleTime;
 
-inputSignalFigure = figure('NumberTitle','off','Name','Input Signals');
-subplot(2,2,1);
-plot(plotMin:plotMax,delsig(plotMin:plotMax));
-title('Electrode Signal')
-subplot(2,2,3);
-plot(plotMin:plotMax,sar1(plotMin:plotMax),...
-     plotMin:plotMax,sar2(plotMin:plotMax));
+rawElectrodeFigure = figure('NumberTitle','off',...
+                            'Name','Raw Electrode Signal',...
+                            'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,delsig(plotMin:plotMax));
+grid on
+xlabel('Time [s]')
+title('Raw Electrode Signal')
+
+rawMicFigure = figure('NumberTitle','off',...
+                      'Name','Raw Microphone Signals',...
+                      'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,sar1(plotMin:plotMax),...
+     plotRange,sar2(plotMin:plotMax));
+grid on
 title('Microphones')
-legend('Microphone 1','Microphone 2')
-
-%filteredSignalFigure = figure('NumberTitle','off','Name','Filtered Signals');
-subplot(2,2,2);
-plot(plotMin:plotMax,hpElectrode(plotMin:plotMax),...
-     plotMin:plotMax,notchElectrode(plotMin:plotMax));
-title('Filtered Electrode Signal')
-legend('High Pass Filter','HP + Notch')
-subplot(2,2,4);
-plot(plotMin:plotMax,uMic1(plotMin:plotMax),...
-     plotMin:plotMax,uMic2(plotMin:plotMax));
-title('Filtered Microphone Signals')
+xlabel('Time [s]')
 legend('Mic 1','Mic 2')
 
-% subplot(3,1,3);
-% plot(plotMin:plotMax,error1(plotMin:plotMax),...
-%      plotMin:plotMax,error2(plotMin:plotMax));
-% title('Error Signals')
-% legend('Error 1','Error 2')
+filtElectrodeFigure = figure('NumberTitle','off',...
+                             'Name','Filtered Electrode Signals',...
+                             'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,hpElectrode(plotMin:plotMax),...
+     plotRange,notchElectrode(plotMin:plotMax));
+grid on
+xlabel('Time [s]')
+title('Filtered Electrode Signal')
+legend('HP','HP + Notch')
 
+filtMicFigure = figure('NumberTitle','off',...
+                       'Name','Filtered Microphone Signals',...
+                       'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,uMic1(plotMin:plotMax),...
+     plotRange,uMic2(plotMin:plotMax));
+grid on
+title('Filtered Microphone Signals')
+xlabel('Time [s]')
+legend('Mic 1','Mic 2')
 
-autoArrangeFigures(1,1)
-
-outputSignalFigure = figure('NumberTitle','off','Name','Output Signal',...
-                            'units','normalized','outerposition',[0 0 1 1]);
-subplot(3,1,1);
-plot(plotMin:plotMax,alpha(plotMin:plotMax));
+alphaFigure = figure('NumberTitle','off',...
+                     'Name','Weight Factor Alpha',...
+                     'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,alpha(plotMin:plotMax));
+grid on
 title('Weight Factor (Alpha)')
-subplot(3,1,2);
-plot(plotMin:plotMax,error1(plotMin:plotMax),...
-     plotMin:plotMax,error2(plotMin:plotMax),... 
-     plotMin:plotMax,output(plotMin:plotMax));
-title('Output')
+xlabel('Time [s]')
+legend('Weight Factor (Alpha)')
+
+errorFigure = figure('NumberTitle','off',...
+                     'Name','Error Signals',...
+                     'units','normalized','outerposition',[0 0 1 1]);
+plot(plotRange,error1(plotMin:plotMax),...
+     plotRange,error2(plotMin:plotMax),... 
+     plotRange,output(plotMin:plotMax));
+grid on
+title('Error Signals and Output')
+xlabel('Time [s]')
 legend('Error 1','Error 2','Final Signal')
-subplot(3,1,3);
-plot(plotMin:plotMax,hpElectrode(plotMin:plotMax),...    
-     plotMin:plotMax,output(plotMin:plotMax));
-title('Output')
+
+outputFigure = figure('NumberTitle','off',...
+                      'Name','Final Signal',...
+                      'units','normalized','outerposition',[0 0 1 1]);plot(plotRange,hpElectrode(plotMin:plotMax),...    
+plotRange,output(plotMin:plotMax));
+grid on
+title('Filter Output and Input  ')
+xlabel('Time [s]')
 legend('HP Electrode','Final Signal')
 
+%% Print Plots to EPS files
+mkdir('results')
+print(rawElectrodeFigure, strcat('results/rawElectrode_case_',int2str(dataCase)),'-depsc');
+print(rawMicFigure, strcat('results/rawMic_case_',int2str(dataCase)),'-depsc');
+print(filtElectrodeFigure, strcat('results/filtElectrode_case_',int2str(dataCase)),'-depsc');
+print(filtMicFigure, strcat('results/filtMic_case_',int2str(dataCase)),'-depsc');
+print(alphaFigure, strcat('results/alpha_case_',int2str(dataCase)),'-depsc');
+print(errorFigure, strcat('results/error_case_',int2str(dataCase)),'-depsc');
+print(outputFigure, strcat('results/output_case_',int2str(dataCase)),'-depsc');
 
 
