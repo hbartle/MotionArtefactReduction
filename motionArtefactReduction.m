@@ -15,7 +15,7 @@ close all
 clc 
 %% Load Measurement Data
 
-dataCase = 3;
+dataCase = 2;
 
 if dataCase == 1
     % Delta-Sigma-ADC (Electrode)
@@ -50,7 +50,7 @@ sampleRate = 183;
 % NLMS Filter Order
 filterOrderNLMS = 30;
 % NLMS Step Size
-stepSize = 0.005;
+stepSize = 0.001;
 
 % HP Filter Order
 filterOrderHP = 6;
@@ -64,9 +64,9 @@ notchBandwidth = notchFrequency/30;
 
 
 % Power Estimation Weight Factor
-beta = 0.7;
+beta = 0.8;
 % Weight Adaption Sensitivity
-gamma = 0.8;
+gamma = 0.3;
 
 %% Signal Initialization
 powerError1 = 0;
@@ -155,11 +155,14 @@ end
 
 %% Post Processing and Plotting
 close all
-plotMin = 1400;
+plotMin = 900;
 plotMax = 1900;
 sampleTime = 1/sampleRate;
 plotRange = plotMin*sampleTime:sampleTime:plotMax*sampleTime;
 
+legendFontSize = 16;
+
+%%%%%%%%%%%%%%%%%%%%%%
 rawElectrodeFigure = figure('NumberTitle','off',...
                             'Name','Raw Electrode Signal',...
                             'units','normalized','outerposition',[0 0 1 1]);
@@ -167,7 +170,7 @@ plot(plotRange,delsig(plotMin:plotMax));
 grid on
 xlabel('Time [s]')
 title('Raw Electrode Signal')
-
+%%%%%%%%%%%%%%%%%%%%%%
 rawMicFigure = figure('NumberTitle','off',...
                       'Name','Raw Microphone Signals',...
                       'units','normalized','outerposition',[0 0 1 1]);
@@ -176,7 +179,9 @@ plot(plotRange,sar1(plotMin:plotMax),...
 grid on
 title('Microphones')
 xlabel('Time [s]')
-legend('Mic 1','Mic 2')
+lgd=legend('Mic 1','Mic 2');
+lgd.FontSize = legendFontSize;
+%%%%%%%%%%%%%%%%%%%%%%
 
 filtElectrodeFigure = figure('NumberTitle','off',...
                              'Name','Filtered Electrode Signals',...
@@ -186,7 +191,9 @@ plot(plotRange,hpElectrode(plotMin:plotMax),...
 grid on
 xlabel('Time [s]')
 title('Filtered Electrode Signal')
-legend('HP','HP + Notch')
+lgd=legend('HP','HP + Notch');
+lgd.FontSize = legendFontSize;
+%%%%%%%%%%%%%%%%%%%%%%
 
 filtMicFigure = figure('NumberTitle','off',...
                        'Name','Filtered Microphone Signals',...
@@ -196,7 +203,9 @@ plot(plotRange,uMic1(plotMin:plotMax),...
 grid on
 title('Filtered Microphone Signals')
 xlabel('Time [s]')
-legend('Mic 1','Mic 2')
+lgd=legend('Mic 1','Mic 2');
+lgd.FontSize = legendFontSize;
+%%%%%%%%%%%%%%%%%%%%%%
 
 alphaFigure = figure('NumberTitle','off',...
                      'Name','Weight Factor Alpha',...
@@ -205,7 +214,8 @@ plot(plotRange,alpha(plotMin:plotMax));
 grid on
 title('Weight Factor (Alpha)')
 xlabel('Time [s]')
-legend('Weight Factor (Alpha)')
+%legend('Weight Factor (Alpha)')
+%%%%%%%%%%%%%%%%%%%%%%
 
 errorFigure = figure('NumberTitle','off',...
                      'Name','Error Signals',...
@@ -216,7 +226,9 @@ plot(plotRange,error1(plotMin:plotMax),...
 grid on
 title('Error Signals and Output')
 xlabel('Time [s]')
-legend('Error 1','Error 2','Final Signal')
+lgd=legend('Error 1','Error 2','Final Signal');
+lgd.FontSize = legendFontSize;
+%%%%%%%%%%%%%%%%%%%%%%
 
 outputFigure = figure('NumberTitle','off',...
                       'Name','Final Signal',...
@@ -225,8 +237,8 @@ plotRange,output(plotMin:plotMax));
 grid on
 title('Filter Output and Input  ')
 xlabel('Time [s]')
-legend('HP Electrode','Final Signal')
-
+lgd=legend('HP Electrode','Final Signal');
+lgd.FontSize = legendFontSize;
 %% Print Plots to EPS files
 mkdir('results')
 print(rawElectrodeFigure, strcat('results/rawElectrode_case_',int2str(dataCase)),'-depsc');
